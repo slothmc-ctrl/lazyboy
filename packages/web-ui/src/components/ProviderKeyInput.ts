@@ -27,6 +27,7 @@ export class ProviderKeyInput extends LitElement {
 	@state() private keyInput = "";
 	@state() private testing = false;
 	@state() private failed = false;
+	@state() private errorMessage = "";
 	@state() private hasKey = false;
 	@state() private inputChanged = false;
 
@@ -48,14 +49,17 @@ export class ProviderKeyInput extends LitElement {
 		}
 	}
 
-	private async testApiKey(provider: string, apiKey: string): Promise<boolean> {
+	private async testApiKey(
+		provider: string,
+		apiKey: string,
+	): Promise<{ success: boolean; error?: string }> {
 		try {
 			const modelId = TEST_MODELS[provider];
-			// Returning true here for Ollama and friends. Can' know which model to use for testing
-			if (!modelId) return true;
+			// Returning true here for Ollama and friends. Can't know which model to use for testing
+			if (!modelId) return { success: true };
 
 			let model = getModel(provider as any, modelId);
-			if (!model) return false;
+			if (!model) return { success: false, error: `Unknown test model: ${modelId}` };
 
 			// Get proxy URL from settings (if available)
 			const proxyEnabled = await getAppStorage().settings.get<boolean>("proxy.enabled");
@@ -73,10 +77,15 @@ export class ProviderKeyInput extends LitElement {
 				maxTokens: 200,
 			} as any);
 
-			return result.stopReason === "stop";
+			if (result.stopReason === "stop") return { success: true };
+
+			// Surface the actual error from the API response
+			const detail = result.errorMessage || `Unexpected stop reason: ${result.stopReason}`;
+			return { success: false, error: detail };
 		} catch (error) {
+			const message = error instanceof Error ? error.message : String(error);
 			console.error(`API key test failed for ${provider}:`, error);
-			return false;
+			return { success: false, error: message };
 		}
 	}
 
@@ -85,31 +94,37 @@ export class ProviderKeyInput extends LitElement {
 
 		this.testing = true;
 		this.failed = false;
+		this.errorMessage = "";
 
-		const success = await this.testApiKey(this.provider, this.keyInput);
+		const result = await this.testApiKey(this.provider, this.keyInput);
 
 		this.testing = false;
 
-		if (success) {
+		if (result.success) {
 			try {
 				await getAppStorage().providerKeys.set(this.provider, this.keyInput);
 				this.hasKey = true;
 				this.inputChanged = false;
+				this.errorMessage = "";
 				this.requestUpdate();
 			} catch (error) {
 				console.error("Failed to save API key:", error);
 				this.failed = true;
+				this.errorMessage = error instanceof Error ? error.message : "Failed to save";
 				setTimeout(() => {
 					this.failed = false;
+					this.errorMessage = "";
 					this.requestUpdate();
-				}, 5000);
+				}, 10000);
 			}
 		} else {
 			this.failed = true;
+			this.errorMessage = result.error || "";
 			setTimeout(() => {
 				this.failed = false;
+				this.errorMessage = "";
 				this.requestUpdate();
-			}, 5000);
+			}, 15000);
 		}
 	}
 
@@ -125,7 +140,7 @@ export class ProviderKeyInput extends LitElement {
 								? html`<span class="text-green-600 dark:text-green-400">✓</span>`
 								: ""
 					}
-					${this.failed ? Badge({ children: i18n("✗ Invalid"), variant: "destructive" }) : ""}
+					${this.failed ? Badge({ children: this.errorMessage ? `✗ ${this.errorMessage.length > 120 ? this.errorMessage.slice(0, 120) + "…" : this.errorMessage}` : i18n("✗ Invalid"), variant: "destructive" }) : ""}
 				</div>
 				<div class="flex items-center gap-2">
 					${Input({
