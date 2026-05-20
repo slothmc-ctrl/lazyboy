@@ -25,6 +25,17 @@ echo "  lazyboy: watching"
 echo "  site backend: http://localhost:3000"
 echo "  site frontend: http://localhost:8080"
 echo ""
+# Show Tailscale download URL if available
+TAILSCALE_IP=$(tailscale ip -4 2>/dev/null || echo "")
+if [ -n "$TAILSCALE_IP" ]; then
+  echo "🔗 Remote dev access (Tailscale):"
+  echo "  Extension zip:  http://${TAILSCALE_IP}:8787/dist-chrome.zip"
+  echo "  WS hot reload:  ws://${TAILSCALE_IP}:8765/ws"
+  echo ""
+  echo "🖥️  On your laptop, run:"
+  echo "  ./scripts/pull-extension.sh ${TAILSCALE_IP}"
+fi
+echo ""
 echo "Press Ctrl+C to stop all services"
 echo ""
 
