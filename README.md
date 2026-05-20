@@ -4,13 +4,13 @@
 
 An AI assistant that lives in your browser sidebar. Built for collaboration, not autonomy theater. You guide, it executes.
 
-Lazyboy can automate repetitive web tasks, extract data from any website, navigate across pages, fill out forms, compare products, compile research, and transform what it finds into documents, spreadsheets, or whatever you need. It works on any website through a Chrome/Edge side panel, using the AI provider of your choice.
+Lazyboy automates repetitive web tasks, extracts data from any website, navigates across pages, fills out forms, compares products, compiles research, and transforms findings into documents, spreadsheets, or whatever you need. It works on any website through a Chrome/Edge side panel, using the AI provider of your choice.
 
 Bring your own API key or log in with an existing subscription (Anthropic Claude, OpenAI/ChatGPT, GitHub Copilot, Google Gemini). Your data stays on your machine. Nothing is collected or tracked.
 
 ## Download & Install
 
-Visit [sitegeist.ai](https://sitegeist.ai) for download links and step-by-step installation instructions.
+Download from the [GitHub releases page](https://github.com/slothmc-ctrl/lazyboy/releases) and load the unpacked extension in Chrome or Edge.
 
 Requires Chrome 141+ or Edge equivalent.
 
@@ -19,7 +19,7 @@ Requires Chrome 141+ or Edge equivalent.
 Clone this repo and install dependencies:
 
 ```bash
-git clone <repo-url> lazyboy
+git clone https://github.com/slothmc-ctrl/lazyboy.git
 cd lazyboy
 npm install
 ```
@@ -43,7 +43,7 @@ npm run dev
 1. Open `chrome://extensions/` or `edge://extensions/`
 2. Enable Developer mode
 3. Click Load unpacked
-4. Select `sitegeist/dist-chrome/`
+4. Select `lazyboy/dist-chrome/`
 5. Click "Details" on the Lazyboy extension and enable:
    - **Allow user scripts**
    - **Allow access to file URLs**
@@ -80,7 +80,7 @@ The unpacked extension is written to `dist-chrome/`.
 cd site && ./run.sh deploy
 ```
 
-Builds the static site and uploads it to `sitegeist.ai`. Requires SSH access to `slayer.marioslab.io`.
+Builds the static site and uploads it to the live website. Requires SSH access to `slayer.marioslab.io`.
 
 ## Releasing
 
@@ -90,7 +90,7 @@ Builds the static site and uploads it to `sitegeist.ai`. Requires SSH access to 
 ./release.sh major   # 1.0.0 -> 2.0.0
 ```
 
-Bumps the version in `static/manifest.chrome.json`, commits, tags, and pushes. GitHub Actions builds the extension and creates a release at [github.com/badlogic/sitegeist/releases](https://github.com/badlogic/sitegeist/releases).
+Bumps the version in `static/manifest.chrome.json`, commits, tags, and pushes. GitHub Actions builds the extension and creates a release at [github.com/slothmc-ctrl/lazyboy/releases](https://github.com/slothmc-ctrl/lazyboy/releases).
 
 ## License
 
