@@ -4,9 +4,6 @@ set -e
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 cd "$SCRIPT_DIR"
 
-SERVER=slayer.marioslab.io
-SERVER_DIR=/home/badlogic/sitegeist.ai
-
 case "$1" in
 dev)
     echo "Starting dev server at http://localhost:8080"
@@ -20,13 +17,9 @@ build)
     ;;
 
 deploy)
-    npm install
-    npx vite build --config infra/vite.config.ts
-
-    echo "Uploading to $SERVER..."
-    ssh $SERVER "mkdir -p $SERVER_DIR/uploads"
-    rsync -avz --delete dist/ $SERVER:$SERVER_DIR/dist/
-    echo "Deployed."
+    echo "Deployment is handled by GitHub Actions (GitHub Pages)."
+    echo "Push to main to trigger deployment, or manually run:"
+    echo "  gh workflow run 'Deploy Site'"
     ;;
 
 *)

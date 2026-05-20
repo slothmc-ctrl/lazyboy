@@ -76,11 +76,15 @@ The unpacked extension is written to `dist-chrome/`.
 
 ## Updating the website
 
+The landing page is hosted on GitHub Pages. Push to `main` (with changes under `site/`) and the GitHub Actions workflow deploys automatically.
+
+To preview locally:
+
 ```bash
-cd site && ./run.sh deploy
+cd site && ./run.sh dev
 ```
 
-Builds the static site and uploads it to the live website. Requires SSH access to `slayer.marioslab.io`.
+Opens a dev server at `http://localhost:8080`.
 
 ## Releasing
 
