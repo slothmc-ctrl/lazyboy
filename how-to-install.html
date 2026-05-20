@@ -230,7 +230,7 @@
       <h2>Pull the extension from your Pi</h2>
       <p>On your <strong>laptop</strong> (not the Pi), run this one command:</p>
       <div style="background: #1a1a2e; border: 1px solid #3a3a5e; border-radius: 8px; padding: 12px 16px; margin: 12px 0; font-family: monospace; font-size: 0.85rem; color: #aaccff;">
-        curl -sS http://<span style="color:#ff8c42;">100.94.50.109</span>:8787/dist-chrome.zip -o /tmp/lazyboy.zip && rm -rf ~/lazyboy-extension && unzip -qo /tmp/lazyboy.zip -d ~/lazyboy-extension && mv ~/lazyboy-extension/dist-chrome/* ~/lazyboy-extension/ && rmdir ~/lazyboy-extension/dist-chrome && rm /tmp/lazyboy.zip && echo "✅ Ready!"
+        curl -sS http://<span style="color:#ff8c42;">100.94.50.109</span>:8787/dist-chrome.zip -o /tmp/lazyboy.zip && rm -rf ~/lazyboy-extension && mkdir -p ~/lazyboy-extension && unzip -qo /tmp/lazyboy.zip -d ~/lazyboy-extension && rm /tmp/lazyboy.zip && echo "✅ Ready!"
       </div>
       <p>Or use the convenience script: <code>./scripts/pull-extension.sh</code></p>
       <p style="margin-top: 8px;">Then in Step 3, select <strong>~/lazyboy-extension</strong> instead.</p>

@@ -46,14 +46,8 @@ mkdir -p "${TARGET_DIR}"
 unzip -qo /tmp/lazyboy-extension.zip -d "${TARGET_DIR}"
 rm /tmp/lazyboy-extension.zip
 
-# The zip contains a 'dist-chrome' folder inside, so files end up at TARGET_DIR/dist-chrome/
-# Move them up one level for cleaner structure
-if [ -d "${TARGET_DIR}/dist-chrome" ]; then
-    mv "${TARGET_DIR}/dist-chrome/"* "${TARGET_DIR}/" 2>/dev/null || true
-    mv "${TARGET_DIR}/dist-chrome/".* "${TARGET_DIR}/" 2>/dev/null || true
-    rm -rf "${TARGET_DIR}/dist-chrome"
-fi
-
+# The zip is flat — files are at the root, no dist-chrome/ subfolder
+# manifest.json is directly in TARGET_DIR
 echo "✓ Extracted"
 echo ""
 

@@ -9,9 +9,15 @@
 import { generatePKCE, waitForOAuthRedirect } from "./browser-oauth.js";
 import type { OAuthCredentials } from "./types.js";
 
-const decode = (s: string) => atob(s);
-const CLIENT_ID = decode("REPLACE_WITH_YOUR_GOOGLE_OAUTH_CLIENT_ID_BASE64");
-const CLIENT_SECRET = decode("REPLACE_WITH_YOUR_GOOGLE_OAUTH_CLIENT_SECRET_BASE64");
+const decode = (s: string) => {
+	try {
+		return atob(s);
+	} catch {
+		return "";
+	}
+};
+const CLIENT_ID = decode("");
+const CLIENT_SECRET = decode("");
 const REDIRECT_URI = "http://localhost:8085/oauth2callback";
 const REDIRECT_HOST = "localhost:8085";
 const SCOPES = [

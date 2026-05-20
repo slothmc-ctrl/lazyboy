@@ -55,7 +55,7 @@ code{background:#2a2a2a;padding:2px 7px;border-radius:5px;color:#ff8c42;font-wei
 <a class="btn" href="/dist-chrome.zip" download>⬇ Download Extension</a>
 <p style="text-align:center;color:#666;font-size:0.8rem">Zip file, ~17 MB</p>
 <p style="margin-top:8px">Or copy this command to your terminal:</p>
-<div class="cmd">curl -o ~/Downloads/lazyboy.zip ${piIP ? `http://${piIP}:8787` : "http://<pi-ip>:8787"}/dist-chrome.zip && unzip -qo ~/Downloads/lazyboy.zip -d ~/lazyboy-extension && mv ~/lazyboy-extension/dist-chrome/* ~/lazyboy-extension/ && rm -rf ~/lazyboy-extension/dist-chrome ~/Downloads/lazyboy.zip && echo "✅ Ready in ~/lazyboy-extension"</div>
+<div class="cmd">rm -rf ~/lazyboy-extension && mkdir -p ~/lazyboy-extension && curl -o ~/Downloads/lazyboy.zip ${piIP ? `http://${piIP}:8787` : "http://<pi-ip>:8787"}/dist-chrome.zip && unzip -qo ~/Downloads/lazyboy.zip -d ~/lazyboy-extension && rm ~/Downloads/lazyboy.zip && echo "✅ Ready in ~/lazyboy-extension"</div>
 </div>
 
 <div class="card">
@@ -114,11 +114,11 @@ server.on("request", (req, res) => {
 			return;
 		}
 
-		const zipName = `dist-chrome-temp-${randomUUID().slice(0, 8)}.zip`;
+		const zipName = `lazyboy-${randomUUID().slice(0, 8)}.zip`;
 		const zipPath = join(projectRoot, zipName);
 		try {
-			// Create zip in project root (not inside dist-chrome to avoid loops)
-			execSync(`cd "${projectRoot}" && zip -r "${zipName}" dist-chrome -x "dist-chrome/pdfjs-dist/build/*" 2>&1`, {
+			// Create flat zip (no nested folder) so Chrome can load unpacked directly
+			execSync(`cd "${distDirChrome}" && zip -r "${zipPath}" . -x "pdfjs-dist/build/*" 2>&1`, {
 				timeout: 30000,
 			});
 
