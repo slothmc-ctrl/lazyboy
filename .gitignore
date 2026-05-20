@@ -1,0 +1,11 @@
+node_modules/
+dist-chrome/
+site/dist/
+site/data/
+*.log
+.DS_Store
+sitegeist-latest.zip
+.playwright-mcp/
+*.screenflow/
+*.mp4
+version.json
