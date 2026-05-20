@@ -37,7 +37,8 @@
 		"userScripts",
 		"webNavigation",
 		"debugger",
-		"declarativeNetRequest"
+		"declarativeNetRequest",
+		"audioCapture"
 	],
 	"host_permissions": [
 		"http://*/*",
