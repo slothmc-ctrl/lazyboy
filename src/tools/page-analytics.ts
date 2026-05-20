@@ -11,17 +11,17 @@ export function createPageAnalyticsTool(): AgentTool {
 				Type.Enum({ headings: "headings", links: "links", meta: "meta", structure: "structure", all: "all" }),
 			),
 		}),
-		execute: async (params) => {
+		execute: async (_toolCallId, params) => {
 			const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
 			if (!tab?.id) {
-				return { success: false, error: "No active tab" };
+				return { content: [{ type: "text" as const, text: "No active tab" }], details: {} };
 			}
 
 			if (tab.url?.startsWith("chrome://") || tab.url?.startsWith("chrome-extension://")) {
-				return { success: false, error: "Cannot analyze browser internal pages" };
+				return { content: [{ type: "text" as const, text: "Cannot analyze browser internal pages" }], details: {} };
 			}
 
-			const scope = params.analyze || "all";
+			const scope = (params as { analyze?: "headings" | "links" | "meta" | "structure" | "all" }).analyze || "all";
 			const results: Record<string, unknown> = {};
 
 			if (scope === "headings" || scope === "all") {
@@ -73,7 +73,7 @@ export function createPageAnalyticsTool(): AgentTool {
 				});
 			}
 
-			return { success: true, results };
+			return { content: [{ type: "text", text: JSON.stringify(results) }], details: { results } };
 		},
 	};
 }

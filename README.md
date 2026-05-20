@@ -16,34 +16,23 @@ Requires Chrome 141+ or Edge equivalent.
 
 ## Development
 
-Clone this repo plus its sibling dependencies into the same parent directory:
-
-```
-parent/
-  mini-lit/          # https://github.com/badlogic/mini-lit
-  pi-mono/           # https://github.com/badlogic/pi-mono
-  sitegeist/         # this repo
-```
-
-Install dependencies in each repo:
+Clone this repo and install dependencies:
 
 ```bash
-(cd ../mini-lit && npm install)
-(cd ../pi-mono && npm install)
+git clone <repo-url> lazyboy
+cd lazyboy
 npm install
 ```
 
 `npm install` sets up the Husky pre-commit hook automatically.
 
-Start all dev watchers (mini-lit, pi-mono, lazyboy extension, marketing site):
+Start all dev watchers (lazyboy extension, marketing site):
 
 ```bash
 ./dev.sh
 ```
 
-Changes in `../mini-lit` or `../pi-mono` are rebuilt automatically and picked up by the lazyboy watcher.
-
-To run only the extension watcher without dependencies or the marketing site:
+To run only the extension watcher without the marketing site:
 
 ```bash
 npm run dev

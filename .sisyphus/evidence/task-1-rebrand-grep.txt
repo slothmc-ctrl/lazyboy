@@ -1,0 +1,8 @@
+/home/slothmc-ctrl/sitegeist/src/sidepanel.ts:886:		const response = await fetch("https://sitegeist.ai/uploads/version.json", {
+/home/slothmc-ctrl/sitegeist/src/oauth/openai-codex.ts:55:	url.searchParams.set("originator", "sitegeist");
+/home/slothmc-ctrl/sitegeist/src/dialogs/UpdateNotificationDialog.ts:37:		window.open("https://sitegeist.ai/install#updating", "_blank");
+/home/slothmc-ctrl/sitegeist/src/dialogs/AboutTab.ts:25:			const response = await fetch("https://sitegeist.ai/uploads/version.json", {
+/home/slothmc-ctrl/sitegeist/src/dialogs/AboutTab.ts:42:		window.open("https://sitegeist.ai/install.html#updating", "_blank");
+/home/slothmc-ctrl/sitegeist/src/dialogs/AboutTab.ts:102:						<a href="https://sitegeist.ai" target="_blank" class="text-primary hover:underline">${i18n("Website")}</a>
+/home/slothmc-ctrl/sitegeist/src/dialogs/AboutTab.ts:104:						<a href="https://sitegeist.ai/imprint" target="_blank" class="text-primary hover:underline">${i18n("Imprint")}</a>
+/home/slothmc-ctrl/sitegeist/src/dialogs/AboutTab.ts:106:						<a href="https://sitegeist.ai/privacy" target="_blank" class="text-primary hover:underline">${i18n("Privacy")}</a>

@@ -1,18 +1,24 @@
 import type { AgentTool } from "@mariozechner/pi-agent-core";
 import { Type } from "@sinclair/typebox";
 
-declare global {
-	interface Window {
-		webkitSpeechRecognition: typeof SpeechRecognition;
-	}
-}
-
 interface VoiceResult {
 	text: string;
 	isFinal: boolean;
 }
 
-let recognition: SpeechRecognition | null = null;
+// SpeechRecognition is not in the DOM lib for this target
+interface SpeechRecognitionInstance {
+	continuous: boolean;
+	interimResults: boolean;
+	lang: string;
+	onresult: ((event: SpeechRecognitionEvent) => void) | null;
+	onerror: ((event: SpeechRecognitionErrorEvent) => void) | null;
+	onend: (() => void) | null;
+	start(): void;
+	stop(): void;
+}
+
+let recognition: SpeechRecognitionInstance | null = null;
 let isListening = false;
 
 export function startVoiceInput(
@@ -21,8 +27,8 @@ export function startVoiceInput(
 	onEnd: () => void,
 	lang?: string,
 ): void {
-	const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-	if (!SpeechRecognition) {
+	const SpeechRecognitionCtor = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+	if (!SpeechRecognitionCtor) {
 		onError("Speech recognition not supported in this browser");
 		return;
 	}
@@ -32,12 +38,12 @@ export function startVoiceInput(
 		return;
 	}
 
-	recognition = new SpeechRecognition();
-	recognition.continuous = false;
-	recognition.interimResults = true;
-	recognition.lang = lang || navigator.language || "en-US";
+	const rec: SpeechRecognitionInstance = new SpeechRecognitionCtor();
+	rec.continuous = false;
+	rec.interimResults = true;
+	rec.lang = lang || navigator.language || "en-US";
 
-	recognition.onresult = (event: SpeechRecognitionEvent) => {
+	rec.onresult = (event: SpeechRecognitionEvent) => {
 		let transcript = "";
 		let isFinal = false;
 		for (let i = event.resultIndex; i < event.results.length; i++) {
@@ -49,7 +55,7 @@ export function startVoiceInput(
 		onResult({ text: transcript, isFinal });
 	};
 
-	recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
+	rec.onerror = (event: SpeechRecognitionErrorEvent) => {
 		if (event.error === "not-allowed") {
 			onError("Microphone permission denied");
 		} else if (event.error === "no-speech") {
@@ -60,14 +66,15 @@ export function startVoiceInput(
 		isListening = false;
 	};
 
-	recognition.onend = () => {
+	rec.onend = () => {
 		isListening = false;
 		recognition = null;
 		onEnd();
 	};
 
+	recognition = rec;
 	try {
-		recognition.start();
+		rec.start();
 		isListening = true;
 	} catch (e) {
 		onError("Failed to start speech recognition");
@@ -95,26 +102,28 @@ export function createVoiceTool(): AgentTool {
 		parameters: Type.Object({
 			lang: Type.Optional(Type.String({ description: "Language code (e.g., en-US, de-DE)" })),
 		}),
-		execute: async (params, _signal) => {
-			return new Promise((resolve) => {
-				let finalText = "";
-				startVoiceInput(
-					(result) => {
-						finalText = result.text;
-					},
-					(error) => {
-						resolve({ success: false, error });
-					},
-					() => {
-						if (finalText) {
-							resolve({ success: true, text: finalText });
-						} else {
-							resolve({ success: false, error: "No speech captured" });
-						}
-					},
-					params.lang,
-				);
-			});
+		execute: async (_toolCallId, params, _signal) => {
+			return new Promise<{ content: { type: "text"; text: string }[]; details: Record<string, unknown> }>(
+				(resolve) => {
+					let finalText = "";
+					startVoiceInput(
+						(result) => {
+							finalText = result.text;
+						},
+						(error) => {
+							resolve({ content: [{ type: "text", text: error }], details: {} });
+						},
+						() => {
+							if (finalText) {
+								resolve({ content: [{ type: "text", text: finalText }], details: { text: finalText } });
+							} else {
+								resolve({ content: [{ type: "text", text: "No speech captured" }], details: {} });
+							}
+						},
+						(params as { lang?: string }).lang,
+					);
+				},
+			);
 		},
 	};
 }

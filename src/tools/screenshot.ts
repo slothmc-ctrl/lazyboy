@@ -10,18 +10,21 @@ export function createScreenshotTool(): AgentTool {
 			format: Type.Optional(Type.Enum({ png: "png", jpeg: "jpeg" })),
 			quality: Type.Optional(Type.Number({ minimum: 0, maximum: 100, description: "JPEG quality (0-100)" })),
 		}),
-		execute: async (params) => {
+		execute: async (_toolCallId, params) => {
 			const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
 			if (!tab?.id) {
-				return { success: false, error: "No active tab" };
+				return { content: [{ type: "text" as const, text: "No active tab" }], details: {} };
 			}
 
 			const dataUrl = await chrome.tabs.captureVisibleTab(tab.windowId, {
-				format: params.format || "png",
-				quality: params.quality || 90,
+				format: (params as { format?: "png" | "jpeg"; quality?: number }).format || "png",
+				quality: (params as { format?: "png" | "jpeg"; quality?: number }).quality || 90,
 			});
 
-			return { success: true, dataUrl, tabId: tab.id, tabTitle: tab.title };
+			return {
+				content: [{ type: "text", text: `Screenshot captured: ${dataUrl.substring(0, 100)}...` }],
+				details: { dataUrl, tabId: tab.id, tabTitle: tab.title },
+			};
 		},
 	};
 }

@@ -1,4 +1,3 @@
-import { execFile } from "child_process";
 import type { LockedSessionsMessage, LockResultMessage, SidepanelToBackgroundMessage } from "./utils/port.js";
 
 // Called when lazyboy icon is clicked - opens sidepanel for current tab
@@ -141,6 +140,7 @@ chrome.runtime.onMessage.addListener(
 	(message: any, sender: chrome.runtime.MessageSender, sendResponse: (response: any) => void) => {
 		if (message.type === "openInWindow") {
 			const url = chrome.runtime.getURL("sidepanel.html?mode=window");
+			const senderWindowId = (sender as { windowId?: number }).windowId;
 			chrome.windows
 				.create({
 					url,
@@ -148,20 +148,20 @@ chrome.runtime.onMessage.addListener(
 					width: 420,
 					height: 700,
 				})
-				.then((win) => {
-					if (sender.windowId) {
-						closeSidepanel(sender.windowId, true);
+				.then((win?: chrome.windows.Window) => {
+					if (win && senderWindowId !== undefined) {
+						closeSidepanel(senderWindowId, true);
 					}
-					sendResponse({ success: true, windowId: win.id });
+					sendResponse({ success: true, windowId: win?.id });
 				})
 				.catch((err) => {
 					sendResponse({ success: false, error: err.message });
 				});
 			return true;
 		} else if (message.type === "closeWindowAndOpenSidepanel") {
-			const sourceWindowId = sender.windowId;
-			if (sourceWindowId) {
-				chrome.windows.get(sourceWindowId, (win) => {
+			const sourceWindowId = (sender as { windowId?: number }).windowId;
+			if (sourceWindowId !== undefined) {
+				chrome.windows.get(sourceWindowId, (win?: chrome.windows.Window) => {
 					if (win && win.type === "popup") {
 						chrome.windows.remove(sourceWindowId).then(() => {
 							if (message.tabId) {
@@ -176,21 +176,6 @@ chrome.runtime.onMessage.addListener(
 			} else {
 				sendResponse({ success: false, error: "No windowId" });
 			}
-			return true;
-		} else if (message.type === "skills-bridge-command") {
-			const args = message.args || [];
-			execFile("npx", ["skills", ...args], { timeout: 30000 }, (error, stdout, stderr) => {
-				if (error) {
-					sendResponse({ success: false, error: error.message });
-				} else {
-					try {
-						const parsed = JSON.parse(stdout);
-						sendResponse({ success: true, skills: parsed });
-					} catch {
-						sendResponse({ success: true, output: stdout, error: stderr });
-					}
-				}
-			});
 			return true;
 		}
 	},

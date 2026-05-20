@@ -23,8 +23,11 @@ import {
 import { html, render } from "lit";
 import { History, Plus, Settings } from "lucide";
 import { AboutTab } from "./dialogs/AboutTab.js";
+import { ApiKeyOrOAuthDialog } from "./dialogs/ApiKeyOrOAuthDialog.js";
 import { ApiKeysOAuthTab } from "./dialogs/ApiKeysOAuthTab.js";
 import { CostsTab } from "./dialogs/CostsTab.js";
+import { SessionCostDialog } from "./dialogs/SessionCostDialog.js";
+import { LazyboySessionListDialog } from "./dialogs/SessionListDialog.js";
 import { SkillsHubTab } from "./dialogs/SkillsHubTab.js";
 import { SkillsTab } from "./dialogs/SkillsTab.js";
 import { UpdateNotificationDialog } from "./dialogs/UpdateNotificationDialog.js";

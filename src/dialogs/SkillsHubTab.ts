@@ -1,4 +1,4 @@
-import { DialogTab } from "@mariozechner/pi-web-ui";
+import { SettingsTab } from "@mariozechner/pi-web-ui";
 import { html } from "lit";
 import { customElement, state } from "lit/decorators.js";
 import {
@@ -10,13 +10,13 @@ import {
 } from "../tools/skills-hub.js";
 
 @customElement("lazyboy-skills-hub-tab")
-export class SkillsHubTab extends DialogTab {
+export class SkillsHubTab extends SettingsTab {
 	@state() private filter = "";
 	@state() private loading = false;
 	@state() private error: string | null = null;
 
-	constructor() {
-		super("Skills Hub");
+	getTabName(): string {
+		return "Skills Hub";
 	}
 
 	override connectedCallback() {

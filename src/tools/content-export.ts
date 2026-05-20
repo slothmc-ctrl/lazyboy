@@ -1,6 +1,8 @@
 import type { AgentTool } from "@mariozechner/pi-agent-core";
 import { Type } from "@sinclair/typebox";
 
+type ExportParams = { format: "markdown" | "text"; includeSelectors?: string; excludeSelectors?: string };
+
 export function createContentExportTool(): AgentTool {
 	return {
 		name: "export_content",
@@ -11,28 +13,30 @@ export function createContentExportTool(): AgentTool {
 			includeSelectors: Type.Optional(Type.String({ description: "CSS selector for content to include" })),
 			excludeSelectors: Type.Optional(Type.String({ description: "CSS selector for content to exclude" })),
 		}),
-		execute: async (params) => {
+		execute: async (_toolCallId, params) => {
+			const p = params as ExportParams;
 			const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
 			if (!tab?.id) {
-				return { success: false, error: "No active tab" };
+				return { content: [{ type: "text" as const, text: "No active tab" }], details: {} };
 			}
 
 			if (tab.url?.startsWith("chrome://") || tab.url?.startsWith("chrome-extension://")) {
-				return { success: false, error: "Cannot export browser internal pages" };
+				return { content: [{ type: "text" as const, text: "Cannot export browser internal pages" }], details: {} };
 			}
 
 			const result = await chrome.scripting.executeScript({
 				target: { tabId: tab.id },
-				func: (format, includeSelectors, excludeSelectors) => {
-					let root = document.body;
+				func: (format: string, includeSelectors: string | undefined, excludeSelectors: string | undefined) => {
+					let root: HTMLElement | null = document.body;
 					if (includeSelectors) {
 						const el = document.querySelector(includeSelectors);
-						if (el) root = el;
+						if (el instanceof HTMLElement) root = el;
 					}
+					if (!root) return { content: "" };
 
 					if (excludeSelectors) {
 						excludeSelectors.split(",").forEach((sel) => {
-							root.querySelectorAll(sel.trim()).forEach((el) => {
+							root!.querySelectorAll(sel.trim()).forEach((el) => {
 								el.remove();
 							});
 						});
@@ -45,13 +49,16 @@ export function createContentExportTool(): AgentTool {
 					const md = domToMarkdown(root);
 					return { content: md };
 				},
-				args: [params.format, params.includeSelectors, params.excludeSelectors],
+				args: [p.format, p.includeSelectors, p.excludeSelectors],
 			});
 
 			if (result[0]?.result?.content) {
-				return { success: true, content: result[0].result.content, format: params.format, title: tab.title };
+				return {
+					content: [{ type: "text", text: result[0].result.content }],
+					details: { format: p.format, title: tab.title },
+				};
 			}
-			return { success: false, error: "No content extracted" };
+			return { content: [{ type: "text", text: "No content extracted" }], details: {} };
 		},
 	};
 }

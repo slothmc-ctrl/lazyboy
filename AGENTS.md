@@ -15,9 +15,9 @@ If the user did not give you a concrete task, read README.md first.
 - Always ask before removing functionality or code that appears intentional
 
 ## Dependencies
-- `@mariozechner/mini-lit`, `@mariozechner/pi-ai`, `@mariozechner/pi-web-ui`, `@mariozechner/pi-agent-core` are linked via `file:` to sibling repos `../mini-lit` and `../pi-mono`
-- Changes to those packages require rebuilding them (the dev watcher handles this)
-- If you need to modify upstream code, edit it in `../pi-mono` or `../mini-lit` directly and rebuild
+- `@mariozechner/mini-lit`, `@mariozechner/pi-ai`, `@mariozechner/pi-web-ui`, `@mariozechner/pi-agent-core` are vendored in `packages/`
+- Changes to those packages require rebuilding them
+- If you need to modify upstream code, edit it in `packages/` directly and rebuild
 
 ## Changelog
 Location: `CHANGELOG.md`
@@ -76,6 +76,11 @@ src/
   storage/              # IndexedDB storage (sessions, skills, costs)
   prompts/              # System prompt and token counting
   components/           # UI components (Toast, TabPill, OrbAnimation)
+packages/
+  agent/                # @mariozechner/pi-agent-core (vendored)
+  ai/                   # @mariozechner/pi-ai (vendored)
+  web-ui/               # @mariozechner/pi-web-ui (vendored)
+  mini-lit/             # @mariozechner/mini-lit (vendored)
 site/
   src/frontend/         # Static landing page and install instructions
 static/
