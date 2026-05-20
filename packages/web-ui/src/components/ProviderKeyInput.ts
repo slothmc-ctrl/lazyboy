@@ -8,13 +8,12 @@ import { getAppStorage } from "../storage/app-storage.js";
 import { applyProxyIfNeeded } from "../utils/proxy-utils.js";
 import { Input } from "./Input.js";
 
-// Test models for each provider
+// Test models for each provider (openrouter uses its own fast auth endpoint instead)
 const TEST_MODELS: Record<string, string> = {
 	anthropic: "claude-haiku-4-5",
 	openai: "gpt-4o-mini",
 	google: "gemini-2.5-flash",
 	groq: "openai/gpt-oss-20b",
-	openrouter: "z-ai/glm-4.6",
 	"vercel-ai-gateway": "anthropic/claude-opus-4.5",
 	cerebras: "gpt-oss-120b",
 	xai: "grok-4-fast-non-reasoning",
@@ -54,6 +53,12 @@ export class ProviderKeyInput extends LitElement {
 		apiKey: string,
 	): Promise<{ success: boolean; error?: string }> {
 		try {
+			// OpenRouter has a dedicated key validation endpoint — much faster
+			// than a full chat completion and avoids any OpenAI client issues.
+			if (provider === "openrouter") {
+				return this.testOpenRouterKey(apiKey);
+			}
+
 			const modelId = TEST_MODELS[provider];
 			// Returning true here for Ollama and friends. Can't know which model to use for testing
 			if (!modelId) return { success: true };
@@ -72,20 +77,77 @@ export class ProviderKeyInput extends LitElement {
 				messages: [{ role: "user", content: "Reply with: ok", timestamp: Date.now() }],
 			};
 
-			const result = await complete(model, context, {
-				apiKey,
-				maxTokens: 200,
-			} as any);
+			// Timeout after 10s so failures are fast
+			const controller = new AbortController();
+			const timeout = setTimeout(() => controller.abort(), 10_000);
 
-			if (result.stopReason === "stop") return { success: true };
+			try {
+				const result = await complete(model, context, {
+					apiKey,
+					maxTokens: 200,
+					signal: controller.signal,
+				} as any);
 
-			// Surface the actual error from the API response
-			const detail = result.errorMessage || `Unexpected stop reason: ${result.stopReason}`;
-			return { success: false, error: detail };
+				if (result.stopReason === "stop") return { success: true };
+
+				// Surface the actual error from the API response
+				const detail = result.errorMessage || `Unexpected stop reason: ${result.stopReason}`;
+				return { success: false, error: detail };
+			} finally {
+				clearTimeout(timeout);
+			}
 		} catch (error) {
 			const message = error instanceof Error ? error.message : String(error);
 			console.error(`API key test failed for ${provider}:`, error);
 			return { success: false, error: message };
+		}
+	}
+
+	/**
+	 * Validate an OpenRouter API key using their dedicated auth endpoint.
+	 * GET https://openrouter.ai/api/v1/auth/key returns 200 on success,
+	 * 401 on invalid key. Much faster and more reliable than a chat completion.
+	 */
+	private async testOpenRouterKey(
+		apiKey: string,
+	): Promise<{ success: boolean; error?: string }> {
+		const controller = new AbortController();
+		const timeout = setTimeout(() => controller.abort(), 8_000);
+
+		try {
+			const response = await fetch("https://openrouter.ai/api/v1/auth/key", {
+				headers: { Authorization: `Bearer ${apiKey}` },
+				signal: controller.signal,
+			});
+
+			if (response.ok) {
+				// Key is valid — optionally extract credit info
+				const data = await response.json().catch(() => ({}));
+				const credits = data?.data?.credits;
+				if (credits !== undefined) {
+					console.log(`OpenRouter credits: ${credits}`);
+				}
+				return { success: true };
+			}
+
+			if (response.status === 401) {
+				return { success: false, error: "401: Invalid API key — check for typos or regenerate on openrouter.ai/keys" };
+			}
+
+			if (response.status === 402) {
+				return { success: false, error: "402: No credits — add funds on openrouter.ai/settings" };
+			}
+
+			const body = await response.text().catch(() => "");
+			return { success: false, error: `${response.status}: ${body.slice(0, 100) || response.statusText}` };
+		} catch (error) {
+			if ((error as any)?.name === "AbortError") {
+				return { success: false, error: "Timed out — check your network or firewall" };
+			}
+			const message = error instanceof Error ? error.message : String(error);
+			return { success: false, error: message };
+		} finally {
+			clearTimeout(timeout);
 		}
 	}
 
